@@ -1,0 +1,36 @@
+name: build-debian
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
+    steps:
+      - name: Install dependencies
+        run: |
+          apt update -y
+          apt upgrade -y
+          apt install -y \
+            build-essential \
+            cmake \
+            qtbase5-dev
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          mkdir build && cd build
+          cmake ..
+          make
+
+      - name: Upload binary to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/kdictionary-lingoes
+          name: "Debian Bookworm build of master branch"
+          body: "Automatically built from master commit ${{ github.sha }}"
+          tag_name: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
